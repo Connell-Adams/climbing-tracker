@@ -1,0 +1,19 @@
+{
+  "name": "SEND LOG — Climbing Coach",
+  "short_name": "SEND LOG",
+  "description": "Personal climbing, gym, and performance coach.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15130F",
+  "theme_color": "#15130F",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
