@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>SEND LOG — Climbing Coach</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SEND LOG">
+<meta name="theme-color" content="#15130F">
+<meta name="format-detection" content="telephone=no">
+<!-- Single-file mode: href is set at runtime via JS (see initPWAManifest). 
+     If deploying as a folder with manifest.json + icon.svg alongside this file,
+     you can instead hardcode: <link rel="manifest" href="manifest.json"> -->
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleTouchIcon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  :root{
+    --bg:#15130F;
+    --bg-raised:#1D1A14;
+    --bg-card:#221E17;
+    --line:#3A3427;
+    --line-soft:#2A261D;
+    --chalk:#EDE9E0;
+    --chalk-dim:#A39C8C;
+    --chalk-faint:#6E6858;
+    --rust:#C4491D;
+    --rust-bright:#E8632E;
+    --steel:#4A6FA5;
+    --steel-bright:#6E93C9;
+    --moss:#5A7247;
+    --moss-bright:#7A9863;
+    --amber:#C99A3E;
+  }
+  *{-webkit-tap-highlight-color: transparent;}
+  html,body{background:var(--bg); color:var(--chalk); font-family:'Inter',sans-serif; overscroll-behavior-y: none;}
+  .font-display{font-family:'Oswald',sans-serif; letter-spacing:0.01em;}
+  .font-mono{font-family:'JetBrains Mono',monospace;}
+  ::-webkit-scrollbar{display:none;}
+  * {scrollbar-width: none;}
+
+  .stencil-border{
+    border: 2px solid var(--line);
+  }
+  .texture-noise{
+    background-image: radial-gradient(circle at 1px 1px, rgba(237,233,224,0.04) 1px, transparent 0);
+    background-size: 14px 14px;
+  }
+  .chip-hazard{
+    background-image: repeating-linear-gradient(45deg, var(--rust) 0, var(--rust) 10px, #1A1712 10px, #1A1712 20px);
+  }
+  .card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .card-header{
+    border-bottom: 1px solid var(--line);
+  }
+  .btn-primary{
+    background: var(--rust);
+    color: #FFF6EE;
+  }
+  .btn-primary:active{ background: var(--rust-bright); transform: scale(0.98); }
+  .btn-ghost{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+  }
+  .btn-ghost:active{ background: var(--line-soft); }
+  .btn-steel{
+    background: var(--steel);
+    color: #F2F6FB;
+  }
+  .btn-steel:active{ background: var(--steel-bright); }
+
+  input, select, textarea{
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    border-radius: 8px;
+  }
+  input:focus, select:focus, textarea:focus{
+    outline: none;
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgba(196,73,29,0.15);
+  }
+  input[type="range"]{
+    -webkit-appearance: none;
+    background: transparent;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    margin-top: -8px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: var(--rust);
+    border: 3px solid #FFF6EE;
+  }
+
+  .tab-btn.active .tab-icon{ color: var(--rust-bright); }
+  .tab-btn.active .tab-label{ color: var(--chalk); }
+  .tab-btn .tab-icon{ color: var(--chalk-faint); }
+  .tab-btn .tab-label{ color: var(--chalk-faint); }
+
+  .pill{
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--chalk-dim);
+  }
+  .pill.selected{
+    background: var(--rust);
+    border-color: var(--rust);
+    color: #FFF6EE;
+  }
+  .pill-steel.selected{
+    background: var(--steel);
+    border-color: var(--steel);
+    color: #F2F6FB;
+  }
+
+  .check-row{
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-raised);
+  }
+  .check-row.checked{
+    border-color: var(--moss);
+    background: rgba(90,114,71,0.12);
+  }
+
+  .pain-track{ background: linear-gradient(90deg, var(--moss) 0%, var(--amber) 55%, var(--rust) 100%); }
+
+  .safety-alert{
+    background: linear-gradient(180deg, rgba(196,73,29,0.18), rgba(196,73,29,0.06));
+    border: 1.5px solid var(--rust);
+  }
+
+  .fade-in{ animation: fadeIn 0.25s ease-out; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .banner-shift{ animation: shift 0.2s ease-out; }
+  @keyframes shift{ from{opacity:0.3; transform: translateX(-6px);} to{opacity:1; transform: translateX(0);} }
+
+  .accordion-content{ max-height:0; overflow:hidden; transition: max-height 0.28s ease; }
+  .accordion-content.open{ max-height: 2000px; }
+
+  .diagonal-tag{
+    background: var(--rust);
+    color: #FFF6EE;
+  }
+
+  .safe-top{ padding-top: env(safe-area-inset-top); }
+  .safe-bottom{ padding-bottom: env(safe-area-inset-bottom); }
+</style>
+</head>
+<body class="min-h-screen texture-noise">
+
+<div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative">
+
+  <!-- ===================== SPITE BANNER ===================== -->
+  <div class="safe-top sticky top-0 z-40">
+    <div class="bg-[#1A1712] border-b-2" style="border-color:var(--rust);">
+      <div class="px-4 pt-3 pb-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full" style="background:var(--rust-bright);"></span>
+            <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--rust-bright);">Today's Reminder</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="injuryGuideOpen" class="w-7 h-7 rounded-md flex items-center justify-center active:scale-95 transition-transform" style="background:var(--bg-raised); border:1px solid var(--line);" aria-label="What To Do When... Injury Guide">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5" style="color:var(--amber);"></i>
+            </button>
+            <button id="spiteBtn" class="btn-primary font-display text-[11px] font-semibold uppercase tracking-wider px-3 py-1.5 rounded-md flex items-center gap-1.5 active:scale-95 transition-transform">
+              <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+              Spite Me
+            </button>
+          </div>
+        </div>
+        <p id="spiteText" class="font-display text-[17px] leading-snug font-medium banner-shift" style="color:var(--chalk);">
+          Gravity doesn't care that you're tired — get on the wall.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main id="mainContent" class="flex-1 overflow-y-auto px-4 pt-4 pb-28">
+    <!-- Views injected here -->
+  </main>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <nav class="safe-bottom fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#1A1712] border-t z-40" style="border-color:var(--line);">
+    <div class="grid grid-cols-5">
+      <button data-tab="logger" class="tab-btn active flex flex-col items-center justify-center gap-1 py-2.5">
+        <i data-lucide="pencil-line" class="tab-icon w-5 h-5"></i>
+        <span class="tab-label text-[9.5px] font-medium tracking-wide">Logger</span>
+      </button>
+      <button data-tab="recovery" class="tab-btn flex flex-col items-center justify-center gap-1 py-2.5">
+        <i data-lucide="moon" class="tab-icon w-5 h-5"></i>
+        <span class="tab-label text-[9.5px] font-medium tracking-wide">Recovery</span>
+      </button>
+      <button data-tab="history" class="tab-btn flex flex-col items-center justify-center gap-1 py-2.5">
+        <i data-lucide="calendar-days" class="tab-icon w-5 h-5"></i>
+        <span class="tab-label text-[9.5px] font-medium tracking-wide">History</span>
+      </button>
+      <button data-tab="stats" class="tab-btn flex flex-col items-center justify-center gap-1 py-2.5">
+        <i data-lucide="trending-up" class="tab-icon w-5 h-5"></i>
+        <span class="tab-label text-[9.5px] font-medium tracking-wide">Stats</span>
+      </button>
+      <button data-tab="settings" class="tab-btn flex flex-col items-center justify-center gap-1 py-2.5">
+        <i data-lucide="settings" class="tab-icon w-5 h-5"></i>
+        <span class="tab-label text-[9.5px] font-medium tracking-wide">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================== SAFETY POP-UP MODAL ===================== -->
+  <div id="safetyModalOverlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.6);">
+    <div class="w-full max-w-md rounded-2xl p-5 fade-in" style="background:var(--bg-card); border:1.5px solid var(--rust);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="alert-triangle" class="w-6 h-6" style="color:var(--rust-bright);"></i>
+        <span class="font-display text-base font-semibold uppercase tracking-wide" style="color:var(--rust-bright);">Pain Threshold Reached</span>
+      </div>
+      <p id="safetyModalText" class="text-sm leading-relaxed mb-4" style="color:var(--chalk);"></p>
+      <button id="safetyModalDismiss" class="btn-primary w-full py-3 rounded-xl font-display font-semibold text-sm uppercase tracking-widest">Got It — I'll Back Off</button>
+    </div>
+  </div>
+
+  <!-- ===================== "WHAT TO DO WHEN..." INJURY & COACH GUIDE MODAL ===================== -->
+  <div id="injuryGuideOverlay" class="hidden fixed inset-0 z-50 flex items-end justify-center" style="background:rgba(0,0,0,0.6);">
+    <div class="w-full max-w-md rounded-t-2xl fade-in flex flex-col" style="background:var(--bg-card); border:1px solid var(--line); max-height:85vh;">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3" style="border-bottom:1px solid var(--line-soft);">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-5 h-5" style="color:var(--rust-bright);"></i>
+          <span class="font-display text-base font-semibold uppercase tracking-wide">What To Do When...</span>
+        </div>
+        <button id="injuryGuideClose" class="w-7 h-7 rounded-full flex items-center justify-center" style="background:var(--bg-raised);">
+          <i data-lucide="x" class="w-4 h-4" style="color:var(--chalk-dim);"></i>
+        </button>
+      </div>
+      <div id="injuryGuideBody" class="overflow-y-auto px-5 py-4 safe-bottom"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   SEND LOG — Personal Climbing / Gym / Performance Coach PWA
+   PART 1: Daily Logger fully implemented. Other tabs are clean placeholders.
+   ========================================================================= */
+
+/* ---------------------------- DATA: SPITE QUOTES ---------------------------- */
+const SPITE_QUOTES = [
+  "Gravity doesn't care that you're tired — get on the wall.",
+  "Your project isn't going to climb itself while you sit on your phone.",
+  "You're 192cm, stop blaming reach and fix your footwork.",
+  "The wall doesn't know it's raining outside. Get in there.",
+  "You warmed up longer than you climbed hard. Cute.",
+  "Nobody sent anything from the couch. Ever. In history.",
+  "That crimp isn't getting softer because you're scared of it.",
+  "You've got two arms, two legs, and zero excuses.",
+  "Rest days are earned, not defaulted to.",
+  "You skipped the antagonist work again, didn't you.",
+  "Your beta wasn't wrong. Your commitment was.",
+  "The send train doesn't wait for people who 'aren't feeling it.'",
+  "You've watched the beta video four times. Time to fall trying instead.",
+  "Weak fingers don't fix themselves by thinking about hangboarding.",
+  "Everyone else logged their session today. Where's yours?",
+  "You didn't come this far to only come this far.",
+  "The project is the same grade it was last week. You aren't, if you show up.",
+  "Sore is not the same as injured. Get moving.",
+  "If you're going to scroll, scroll after the session.",
+  "Your footwork is loud enough to hear from the belay.",
+];
+
+/* ---------------------------- DATA: PHASE PLAN ---------------------------- */
+const PHASES = {
+  p1: {
+    label: "Phase 1 — Weeks 1–2: Return to Climbing",
+    sub: "4 climb / 2 gym",
+    days: {
+      Mon: { focus: "Moderate Bouldering", detail: "90 min max", type: "climb", targetGrade: "V4–V5" },
+      Tue: { focus: "Rest / Easy", detail: "Optional light movement", type: "rest", targetGrade: null },
+      Wed: { focus: "Easy Bouldering", detail: "Technique-focused", type: "climb", targetGrade: "V2–V3" },
+      Thu: { focus: "Gym A", detail: "Legs + Push + Core", type: "gym", targetGrade: null },
+      Fri: { focus: "Hard-ish Bouldering", detail: "Push intensity", type: "climb", targetGrade: "V5–V6" },
+      Sat: { focus: "Rest", detail: "Full recovery", type: "rest", targetGrade: null },
+      Sun: { focus: "Easy / Fun Bouldering", detail: "Low pressure, enjoy it", type: "climb", targetGrade: "V2–V4" },
+    }
+  },
+  p2: {
+    label: "Phase 2 — Weeks 3–4: Rebuild Base",
+    sub: "4–5 climb days",
+    days: {
+      Mon: { focus: "Hard Bouldering", detail: "90–120 min", type: "climb", targetGrade: "V5–V6" },
+      Tue: { focus: "Easy Technique", detail: "60–90 min", type: "climb", targetGrade: "V2–V3" },
+      Wed: { focus: "Gym A", detail: "Legs + Push + Core", type: "gym", targetGrade: null },
+      Thu: { focus: "Moderate Bouldering", detail: "60–90 min", type: "climb", targetGrade: "V4–V5" },
+      Fri: { focus: "Rest", detail: "Full recovery", type: "rest", targetGrade: null },
+      Sat: { focus: "Hard Bouldering + Short Gym", detail: "Combo day", type: "climb", targetGrade: "V5–V6" },
+      Sun: { focus: "Easy Climbing", detail: "30–60 min", type: "climb", targetGrade: "V2–V3" },
+    }
+  },
+  p3: {
+    label: "Phase 3 — Weeks 5–8: Build to 5 Days",
+    sub: "Progressive load",
+    days: {
+      Mon: { focus: "Limit Bouldering", detail: "Max effort", type: "climb", targetGrade: "V6–V7" },
+      Tue: { focus: "Easy Volume", detail: "Mileage day", type: "climb", targetGrade: "V3–V4" },
+      Wed: { focus: "Gym A", detail: "Legs + Push + Core", type: "gym", targetGrade: null },
+      Thu: { focus: "Moderate Bouldering", detail: "Sustainable intensity", type: "climb", targetGrade: "V4–V5" },
+      Fri: { focus: "Rest", detail: "Full recovery", type: "rest", targetGrade: null },
+      Sat: { focus: "Hard Bouldering", detail: "Push intensity", type: "climb", targetGrade: "V6–V7" },
+      Sun: { focus: "Gym B + Easy Climbing", detail: "Combo day", type: "gym", targetGrade: "V2–V3" },
+    }
+  },
+  p4: {
+    label: "Phase 4 — Weeks 9–12: 6-Day Cycle",
+    sub: "Build frequency, not intensity",
+    days: {
+      Mon: { focus: "Limit Bouldering", detail: "Max effort", type: "climb", targetGrade: "V6–V8" },
+      Tue: { focus: "Easy Technique", detail: "Movement quality", type: "climb", targetGrade: "V3–V4" },
+      Wed: { focus: "Gym A", detail: "Legs + Push + Core", type: "gym", targetGrade: null },
+      Thu: { focus: "Moderate Bouldering", detail: "Sustainable intensity", type: "climb", targetGrade: "V5–V6" },
+      Fri: { focus: "Gym B", detail: "Upper Support + Injury Prevention", type: "gym", targetGrade: null },
+      Sat: { focus: "Hard Bouldering", detail: "Push intensity", type: "climb", targetGrade: "V6–V8" },
+      Sun: { focus: "Active Recovery", detail: "Light movement only", type: "rest", targetGrade: null },
+    }
+  },
+  p5: {
+    label: "Phase 5 — 7-Day Lifestyle",
+    sub: "Full integrated week",
+    days: {
+      Mon: { focus: "Limit Bouldering", detail: "Max effort", type: "climb", targetGrade: "V7–V8" },
+      Tue: { focus: "Technique", detail: "Movement quality", type: "climb", targetGrade: "V3–V4" },
+      Wed: { focus: "Gym A + Easy", detail: "Combo day", type: "gym", targetGrade: "V2–V3" },
+      Thu: { focus: "Moderate Bouldering", detail: "Sustainable intensity", type: "climb", targetGrade: "V5–V6" },
+      Fri: { focus: "Hard Bouldering", detail: "Push intensity", type: "climb", targetGrade: "V6–V8" },
+      Sat: { focus: "Gym B + Very Easy", detail: "Combo day", type: "gym", targetGrade: "V1–V2" },
+      Sun: { focus: "Active Recovery", detail: "Light movement only", type: "rest", targetGrade: null },
+    }
+  }
+};
+
+const GYM_PRESETS = {
+  gymA: {
+    label: "Gym A — Legs + Push + Core",
+    exercises: [
+      { name: "Squat / Leg Press", scheme: "3 × 5–8" },
+      { name: "RDL", scheme: "3 × 6–10" },
+      { name: "Bulgarian Split Squat", scheme: "3 × 8–12" },
+      { name: "Bench / DB Press", scheme: "3 × 5–10" },
+      { name: "Overhead Press", scheme: "2–3 × 6–10" },
+      { name: "Hanging Leg Raises", scheme: "3 × 8–15" },
+      { name: "Pallof Press", scheme: "3 × 10–15" },
+    ]
+  },
+  gymB: {
+    label: "Gym B — Upper Support + Legs + Injury Prevention",
+    exercises: [
+      { name: "Trap-Bar Deadlift / Hip Thrust", scheme: "3 × 3–6 or 3 × 6–10" },
+      { name: "Split Squat / Step-ups", scheme: "3 × 8–12" },
+      { name: "Incline DB Press", scheme: "3 × 8–12" },
+      { name: "Rows", scheme: "2–3 × 8–12" },
+      { name: "Face Pulls", scheme: "3 × 12–20" },
+      { name: "External Rotations", scheme: "2–3 × 12–20" },
+      { name: "Reverse Wrist Curls", scheme: "2–3 × 15–25" },
+    ]
+  }
+};
+
+/* ---------------------------- DELOAD MATH (−40%) ---------------------------- */
+// Deload cuts every number embedded in a plan string (durations, set/rep schemes)
+// by 40%, rounding down but never below 1. Non-numeric text is left untouched.
+const DELOAD_FACTOR = 0.6; // i.e. −40%
+
+function deloadCutNumber(n){
+  return Math.max(1, Math.floor(n * DELOAD_FACTOR));
+}
+
+function deloadAdjustDetailText(text){
+  if(!text) return text;
+  return text.replace(/\d+(\.\d+)?/g, (match) => String(deloadCutNumber(parseFloat(match))));
+}
+
+function deloadAdjustScheme(scheme){
+  return deloadAdjustDetailText(scheme);
+}
+
+function deloadAdjustDuration(minutesStrOrNum){
+  if(minutesStrOrNum === "" || minutesStrOrNum === null || minutesStrOrNum === undefined) return minutesStrOrNum;
+  const n = parseFloat(minutesStrOrNum);
+  if(isNaN(n)) return minutesStrOrNum;
+  return deloadCutNumber(n);
+}
+
+const FALL_REASONS = [
+  "Wrong Beta", "Bad Feet", "Poor Position", "Over-gripping",
+  "Lack of Commitment", "Timing", "Exhaustion", "Insufficient Strength"
+];
+
+const SESSION_TYPES = ["Limit", "Moderate", "Easy / Technique", "Active Recovery", "Weakness Focus"];
+
+/* ---------------------------- DATA: BASELINE PROFILE & GOALS ---------------------------- */
+const BASELINE_PROFILE = {
+  heightCm: 192,
+  weightKg: 70,
+  goalGrade: "V8",
+  goalText: "Progressive capacity, finger durability, and reaching V8 without injury."
+};
+
+/* ---------------------------- DATA: "WHAT TO DO WHEN..." INJURY & COACH GUIDE ---------------------------- */
+const INJURY_GUIDE = [
+  {
+    id: "finger",
+    icon: "hand",
+    title: "Sharp Finger / Pulley Pain",
+    trigger: "Sudden sharp pain, a pop, or pain that spikes mid-move",
+    color: "var(--rust-bright)",
+    steps: [
+      "Stop climbing immediately. Sharp or sudden pain is not something to climb through — a pulley injury gets dramatically worse if you keep loading it.",
+      "Rate it 0–10 right now. 0–2: minor tweak, monitor. 3–4: stop for the session, ice, reassess tomorrow. 5+: full stop, no climbing until it's pain-free at rest and on a gentle squeeze test.",
+      "First 48–72h: rest, ice 10–15min a few times a day, avoid crimping or any loaded finger flexion.",
+      "Rehab load guide once pain-free at rest: start with open-hand holds only, light isometric hangs at low intensity (well below pain threshold), and rebuild volume by roughly 10% per week — no half-crimp until you're confident it's fully settled.",
+      "Do not test it on the wall. Test it on the ground with light isometric holds first."
+    ]
+  },
+  {
+    id: "elbow",
+    icon: "activity",
+    title: "Persistent Elbow Pain",
+    trigger: "Dull, lingering ache (medial or lateral) that builds across sessions rather than a sudden sharp pain",
+    color: "var(--amber)",
+    steps: [
+      "Cap climbing volume — this is a repetitive-load issue, not a one-session fix. Cut session count and hard-pulling volume, not necessarily intensity.",
+      "Add wrist extensor work: reverse wrist curls (2–3 × 15–25) and light rice-bucket or Theraband extensor work most days — this is already built into your Gym B preset.",
+      "Reduce crimping and pull-heavy gym accessory work until the ache settles at rest.",
+      "Ice after sessions, not before — icing pre-session can mask pain you need to respect.",
+      "If it hasn't improved in 1–2 weeks of reduced volume, that's your signal to take a longer block off, not push through it."
+    ]
+  },
+  {
+    id: "fatigue",
+    icon: "battery-low",
+    title: "Fatigue / Plateau",
+    trigger: "Flat sessions, stalled grades, or persistent low energy despite consistent training",
+    color: "var(--steel-bright)",
+    steps: [
+      "Check sleep first. Target is 8–9h. Anything consistently under 7h will blunt recovery and strength gains before anything else does.",
+      "Check carbs. Under-fueling climbing sessions (target 280–450g+ carbs/day) is one of the most common hidden causes of a plateau.",
+      `Weight check for your frame (${BASELINE_PROFILE.heightCm}cm / ~${BASELINE_PROFILE.weightKg}kg): unintentional weight loss on a lean frame like yours is a red flag for under-recovery, not a performance hack — it usually means less power, not more.`,
+      "If sleep and fuel both check out and the plateau persists 2+ weeks, that's a deload signal — not a sign to train harder.",
+      "Plateaus at this level are normal. The fix is almost always recovery capacity, not additional volume."
+    ]
+  }
+];
+const PROJECTING_STEPS = [
+  { n: 1, title: "Hardest Move First", detail: "Session starts fresh — attempt the crux while you have the most power available." },
+  { n: 2, title: "Work in Isolation", detail: "Break the problem into sections. Drill the hardest move on its own before linking anything." },
+  { n: 3, title: "Beta Experiment", detail: "Try alternate sequences, foot swaps, and body positions before committing to one beta." },
+  { n: 4, title: "3–5 Min Rests", detail: "Full recovery between hard attempts. Rushed rests produce garbage data." },
+  { n: 5, title: "Link Sections", detail: "Once moves are dialed, link them into larger chunks — bottom half, top half, then combine." },
+  { n: 6, title: "Long Rest Before Full Send", detail: "Give yourself a genuine recovery block (10m+) before attempting a full, from-the-ground burn." },
+];
+const GRADES = ["V0","V1","V2","V3","V4","V5","V6","V7","V8","V9"]; // V-scale / gym grades 1-9 mapped
+
+const WARMUP_STEPS = [
+  { id: "wu1", label: "General movement / walking", detail: "5–10 minutes" },
+  { id: "wu2", label: "Joint circles", detail: "5 min — shoulders, wrists, elbows" },
+  { id: "wu3", label: "Progressive easy boulders", detail: "10–15 minutes, build intensity gradually" },
+];
+
+/* ---------------------------- DATA: RECOVERY & LIFESTYLE ---------------------------- */
+const EVENING_STEPS = [
+  { id: "ev1", label: "Easy breathing / relaxation", detail: "2 minutes" },
+  { id: "ev2", label: "Hips — deep squat hold", detail: "2 minutes" },
+  { id: "ev3", label: "Ankles — dorsiflexion", detail: "2 minutes" },
+  { id: "ev4", label: "Shoulders / lats stretch", detail: "2 minutes" },
+  { id: "ev5", label: "Wrists / forearms stretch", detail: "2 minutes" },
+];
+
+const SKIN_STEPS = [
+  { id: "callus", label: "Callus filing check", detail: "File down hot spots before they tear" },
+  { id: "moisturizer", label: "Post-climbing moisturizer", detail: "Rehydrate skin after chalk exposure" },
+  { id: "flapperCheck", label: "Flapper & skin thickness check", detail: "Inspect for tears, thin spots, splits" },
+];
+
+const ZONE2_MODES = ["Cycling", "Uphill Walk", "Easy Jog"];
+
+const MACRO_TARGETS = {
+  protein: { label: "Protein", range: "130–140g" },
+  carbs: { label: "Carbs", range: "280–450g+" },
+  fats: { label: "Fats", range: "60–90g" },
+};
+
+/* ---------------------------- STATE ---------------------------- */
+const STORAGE_KEY = "sendlog_state_v1";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn("State load failed", e); }
+  return null;
+}
+
+function defaultDailyEntry(){
+  return {
+    date: todayISO(),
+    phase: "p1",
+    deload: false,
+    warmup: { wu1:false, wu2:false, wu3:false },
+    sleepHours: null,
+    sleepQuality: null,
+    pain: { fingers: 0, elbows: 0, shoulders: 0 },
+    rpe: null,
+    fallReasons: [],
+    climb: { duration: "", sessionType: "", grades: {} }, // grades: {V4: count, ...}
+    gym: { preset: "", sets: {} }, // sets: { exerciseName: [{sets,reps,weight,rpe}] }
+    notes: "",
+
+    // ---- Recovery & Lifestyle (Part 2) ----
+    evening: { ev1:false, ev2:false, ev3:false, ev4:false, ev5:false },
+    skin: { callus:false, moisturizer:false, flapperCheck:false },
+    walkMinutes: null,
+    zone2: { done:false, minutes:null, mode:"" }, // mode: cycling / uphill walk / easy jog
+    bodyWeight: null,
+    macros: { protein:false, carbs:false, fats:false },
+    fuel: { pre:false, post:false },
+    supplements: { creatine:false, electrolytes:false },
+    waterMl: null,
+    caffeineLate: null, // true = had late caffeine (bad), false = avoided, null = unset
+  };
+}
+
+function migrateEntry(e){
+  // Ensure entries created before Part 2 have the new fields
+  const d = defaultDailyEntry();
+  e.evening = e.evening || d.evening;
+  e.skin = e.skin || d.skin;
+  e.walkMinutes = (e.walkMinutes !== undefined) ? e.walkMinutes : d.walkMinutes;
+  e.zone2 = e.zone2 || d.zone2;
+  e.bodyWeight = (e.bodyWeight !== undefined) ? e.bodyWeight : d.bodyWeight;
+  e.macros = e.macros || d.macros;
+  e.fuel = e.fuel || d.fuel;
+  e.supplements = e.supplements || d.supplements;
+  e.waterMl = (e.waterMl !== undefined) ? e.waterMl : d.waterMl;
+  e.caffeineLate = (e.caffeineLate !== undefined) ? e.caffeineLate : d.caffeineLate;
+  return e;
+}
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+let state = loadState() || {
+  entries: {},          // keyed by date ISO -> entry
+  lastSpiteIndex: -1,
+  settings: { heightCm: 192, targetWeightKg: 70 },
+};
+
+if(!state.settings) state.settings = { heightCm: 192, targetWeightKg: 70 };
+
+// migrate every stored entry to include Part 2 fields
+Object.keys(state.entries).forEach(k=>{
+  state.entries[k] = migrateEntry(state.entries[k]);
+});
+
+// ensure today's entry exists
+if(!state.entries[todayISO()]){
+  state.entries[todayISO()] = defaultDailyEntry();
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){ console.warn("State save failed", e); }
+}
+
+function currentEntry(){
+  return state.entries[todayISO()];
+}
+
+/* ---------------------------- SPITE BANNER LOGIC ---------------------------- */
+function cycleSpite(){
+  let idx;
+  do{
+    idx = Math.floor(Math.random() * SPITE_QUOTES.length);
+  } while(idx === state.lastSpiteIndex && SPITE_QUOTES.length > 1);
+  state.lastSpiteIndex = idx;
+  const el = document.getElementById("spiteText");
+  el.classList.remove("banner-shift");
+  void el.offsetWidth;
+  el.classList.add("banner-shift");
+  el.textContent = SPITE_QUOTES[idx];
+  saveState();
+}
+
+function initSpite(){
+  // pick a quote deterministic-ish for app open, but randomized
+  const idx = Math.floor(Math.random() * SPITE_QUOTES.length);
+  state.lastSpiteIndex = idx;
+  document.getElementById("spiteText").textContent = SPITE_QUOTES[idx];
+  document.getElementById("spiteBtn").addEventListener("click", cycleSpite);
+}
+
+/* ---------------------------- TAB NAVIGATION ---------------------------- */
+let activeTab = "logger";
+let protocolExpanded = false;
+
+function initTabs(){
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      renderMain();
+      document.getElementById("mainContent").scrollTop = 0;
+    });
+  });
+}
+
+function renderMain(){
+  const main = document.getElementById("mainContent");
+  if(activeTab === "logger"){
+    main.innerHTML = renderLogger();
+  } else if(activeTab === "recovery"){
+    main.innerHTML = renderRecovery();
+  } else if(activeTab === "history"){
+    main.innerHTML = renderHistory();
+  } else if(activeTab === "stats"){
+    main.innerHTML = renderStats();
+  } else if(activeTab === "settings"){
+    main.innerHTML = renderSettings();
+  }
+  lucide.createIcons();
+
+  if(activeTab === "logger") attachLoggerHandlers();
+  if(activeTab === "recovery") attachRecoveryHandlers();
+  if(activeTab === "history") attachHistoryHandlers();
+  if(activeTab === "stats") attachStatsHandlers();
+  if(activeTab === "settings") attachSettingsHandlers();
+}
+
+/* ---------------------------- LOGGER RENDER ---------------------------- */
+function renderLogger(){
+  const e = currentEntry();
+  const phase = PHASES[e.phase];
+  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+  const dayPlan = phase.days[dayName] || phase.days["Mon"];
+
+  const maxPain = Math.max(e.pain.fingers, e.pain.elbows, e.pain.shoulders);
+  const showSafetyAlert = maxPain >= 5;
+  const deloadSuggestion = e.deload ? null : computeDeloadSuggestion();
+
+  return `
+  <div class="fade-in space-y-4">
+
+    <!-- GOAL CHIP -->
+    <div class="flex items-center gap-2 px-1">
+      <span class="text-[10px] font-mono px-2 py-1 rounded-md" style="background:var(--bg-card); border:1px solid var(--line); color:var(--chalk-dim);">${BASELINE_PROFILE.heightCm}cm / ${BASELINE_PROFILE.weightKg}kg</span>
+      <span class="text-[10px] font-mono px-2 py-1 rounded-md" style="background:rgba(196,73,29,0.1); border:1px solid var(--rust); color:var(--rust-bright);">Goal: ${BASELINE_PROFILE.goalGrade}</span>
+    </div>
+
+    ${showSafetyAlert ? renderSafetyAlert(e.pain) : ""}
+
+    ${deloadSuggestion ? `
+    <div class="rounded-xl p-4 flex gap-3" style="background:linear-gradient(180deg, rgba(201,154,62,0.18), rgba(201,154,62,0.05)); border:1.5px solid var(--amber);">
+      <i data-lucide="battery-warning" class="w-6 h-6 flex-shrink-0 mt-0.5" style="color:var(--amber);"></i>
+      <div class="flex-1">
+        <p class="font-display text-sm font-semibold uppercase tracking-wide mb-1" style="color:var(--amber);">Deload Week Suggested</p>
+        <p class="text-sm leading-snug mb-2" style="color:var(--chalk);">${deloadSuggestion}</p>
+        <button data-quick-deload class="text-xs font-display font-semibold uppercase tracking-wide px-3 py-1.5 rounded-lg" style="background:var(--amber); color:#1A1712;">Turn On Deload Mode</button>
+      </div>
+    </div>` : ""}
+
+    <!-- PHASE SELECTOR -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Training Phase</span>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <span class="text-[10px] font-display font-semibold tracking-wider uppercase" style="color:${e.deload ? 'var(--amber)' : 'var(--chalk-faint)'};">Deload −40%</span>
+          <input type="checkbox" id="deloadToggle" ${e.deload ? "checked" : ""} class="w-4 h-4 accent-[#C99A3E]">
+        </label>
+      </div>
+      <select id="phaseSelect" class="w-full px-3 py-2.5 text-sm font-medium">
+        ${Object.entries(PHASES).map(([key,p])=>`<option value="${key}" ${e.phase===key?"selected":""}>${p.label}</option>`).join("")}
+      </select>
+      <p class="text-xs mt-1.5" style="color:var(--chalk-dim);">${phase.sub}</p>
+
+      <div class="mt-3 pt-3" style="border-top:1px solid var(--line-soft);">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full" style="background:${dayPlan.type==='climb'?'var(--rust)':dayPlan.type==='gym'?'var(--steel)':'var(--moss)'};"></span>
+          <span class="text-[10px] font-display font-semibold tracking-[0.15em] uppercase" style="color:var(--chalk-faint);">${dayName} — Today's Plan</span>
+        </div>
+        <p class="font-display text-base font-medium">${dayPlan.focus}${e.deload ? " (Deload −40%)" : ""}</p>
+        <p class="text-xs" style="color:var(--chalk-dim);">${e.deload ? deloadAdjustDetailText(dayPlan.detail) : dayPlan.detail}</p>
+        ${dayPlan.targetGrade ? `
+        <div class="mt-2 flex items-center gap-1.5">
+          <span class="text-[9px] uppercase tracking-wide font-mono" style="color:var(--chalk-faint);">Target Grade</span>
+          <span class="font-mono text-xs font-bold px-1.5 py-0.5 rounded" style="background:var(--bg-raised); color:var(--amber);">${dayPlan.targetGrade}</span>
+        </div>` : ""}
+      </div>
+    </div>
+
+    <!-- WARM-UP CHECKLIST -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Guided Warm-Up</span>
+        <span class="text-xs font-mono" style="color:var(--chalk-dim);">${Object.values(e.warmup).filter(Boolean).length}/3</span>
+      </div>
+      <div class="space-y-2">
+        ${WARMUP_STEPS.map(step => `
+          <button data-warmup="${step.id}" class="check-row ${e.warmup[step.id] ? "checked" : ""} w-full flex items-center gap-3 px-3 py-2.5 text-left">
+            <span class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style="background:${e.warmup[step.id] ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.warmup[step.id] ? 'var(--moss)' : 'var(--line)'};">
+              ${e.warmup[step.id] ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+            </span>
+            <span class="flex-1">
+              <span class="block text-sm font-medium">${step.label}</span>
+              <span class="block text-xs" style="color:var(--chalk-faint);">${step.detail}</span>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- SUBJECTIVE METRICS -->
+    <div class="card p-4">
+      <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase block mb-3" style="color:var(--chalk-faint);">Subjective Metrics</span>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Hours Slept</label>
+          <input type="number" id="sleepHours" min="0" max="14" step="0.5" placeholder="8.0" value="${e.sleepHours ?? ''}" class="w-full px-3 py-2 text-sm">
+          <p class="text-[10px] mt-1" style="color:var(--chalk-faint);">Target: 8–9h</p>
+        </div>
+        <div>
+          <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Sleep Quality</label>
+          <div class="flex gap-1">
+            ${[1,2,3,4,5].map(n => `
+              <button data-sleepq="${n}" class="pill ${e.sleepQuality===n?"selected":""} flex-1 py-2 text-xs font-mono font-semibold">${n}</button>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-1">
+        <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Effort / RPE (session)</label>
+        <div class="flex items-center gap-3">
+          <input type="range" id="rpeSlider" min="1" max="10" step="1" value="${e.rpe ?? 5}" class="flex-1">
+          <span id="rpeValue" class="font-mono text-lg font-bold w-8 text-center" style="color:var(--rust-bright);">${e.rpe ?? 5}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAIN SCALE -->
+    <div class="card p-4">
+      <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase block mb-3" style="color:var(--chalk-faint);">Tendon & Joint Pain (0–10)</span>
+      <div class="space-y-4">
+        ${renderPainSlider("fingers", "Fingers", e.pain.fingers)}
+        ${renderPainSlider("elbows", "Elbows", e.pain.elbows)}
+        ${renderPainSlider("shoulders", "Shoulders", e.pain.shoulders)}
+      </div>
+    </div>
+
+    <!-- PROJECT MENTAL CHECK -->
+    <div class="card p-4">
+      <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase block mb-1" style="color:var(--chalk-faint);">Project Mental Check</span>
+      <p class="text-xs mb-3" style="color:var(--chalk-dim);">Why did I fall?</p>
+      <div class="grid grid-cols-2 gap-2">
+        ${FALL_REASONS.map(reason => `
+          <button data-fallreason="${reason}" class="pill ${e.fallReasons.includes(reason)?"selected":""} px-2 py-2 text-[11px] font-medium leading-tight text-left">${reason}</button>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- CLIMBING LOG -->
+    <div class="card">
+      <div class="card-header px-4 py-3 flex items-center gap-2">
+        <i data-lucide="mountain" class="w-4 h-4" style="color:var(--rust-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Climbing Log</span>
+      </div>
+      <div class="p-4 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Duration (min)</label>
+            <input type="number" id="climbDuration" min="0" step="5" placeholder="${e.deload ? deloadAdjustDuration(90) : 90}" value="${e.climb.duration}" class="w-full px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Session Type</label>
+            <select id="climbSessionType" class="w-full px-3 py-2 text-sm">
+              <option value="">Select...</option>
+              ${SESSION_TYPES.map(t => `<option value="${t}" ${e.climb.sessionType===t?"selected":""}>${t}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium block mb-2" style="color:var(--chalk-dim);">Problems Completed Per Grade</label>
+          <div class="grid grid-cols-5 gap-2">
+            ${GRADES.map(g => `
+              <div class="flex flex-col items-center">
+                <span class="font-mono text-[10px] font-semibold mb-1" style="color:var(--chalk-faint);">${g}</span>
+                <div class="flex items-center rounded-lg overflow-hidden" style="border:1px solid var(--line);">
+                  <button data-grade-dec="${g}" class="w-6 h-8 flex items-center justify-center active:bg-[#2A261D]" style="color:var(--chalk-dim);">−</button>
+                  <span class="font-mono text-sm font-bold w-6 text-center" style="background:var(--bg-raised);">${e.climb.grades[g] || 0}</span>
+                  <button data-grade-inc="${g}" class="w-6 h-8 flex items-center justify-center active:bg-[#2A261D]" style="color:var(--rust-bright);">+</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STRUCTURED PROJECTING PROTOCOL -->
+    <div class="card overflow-hidden">
+      <button data-protocol-toggle class="w-full card-header px-4 py-3 flex items-center justify-between text-left">
+        <div class="flex items-center gap-2">
+          <i data-lucide="list-ordered" class="w-4 h-4" style="color:var(--amber);"></i>
+          <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Structured Projecting Protocol</span>
+        </div>
+        <i data-lucide="${protocolExpanded ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 flex-shrink-0" style="color:var(--chalk-faint);"></i>
+      </button>
+      <div class="accordion-content ${protocolExpanded ? 'open' : ''}">
+        <div class="p-4 space-y-3">
+          ${PROJECTING_STEPS.map(step => `
+            <div class="flex gap-3">
+              <span class="font-display text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--bg-raised); border:1px solid var(--amber); color:var(--amber);">${step.n}</span>
+              <div>
+                <p class="text-sm font-medium">${step.title}</p>
+                <p class="text-xs leading-snug" style="color:var(--chalk-dim);">${step.detail}</p>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+
+    <!-- GYM LOG -->
+    <div class="card">
+      <div class="card-header px-4 py-3 flex items-center gap-2">
+        <i data-lucide="dumbbell" class="w-4 h-4" style="color:var(--steel-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Gym Log</span>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="flex gap-2">
+          <button data-gympreset="gymA" class="pill pill-steel ${e.gym.preset==='gymA'?"selected":""} flex-1 py-2.5 text-xs font-display font-semibold uppercase tracking-wide">Gym A</button>
+          <button data-gympreset="gymB" class="pill pill-steel ${e.gym.preset==='gymB'?"selected":""} flex-1 py-2.5 text-xs font-display font-semibold uppercase tracking-wide">Gym B</button>
+        </div>
+        ${e.gym.preset ? renderGymExercises(e.gym.preset, e.gym.sets, e.deload) : `<p class="text-xs text-center py-3" style="color:var(--chalk-faint);">Select a preset to log sets.</p>`}
+      </div>
+    </div>
+
+    <!-- VIDEO & BETA NOTES -->
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="video" class="w-4 h-4" style="color:var(--chalk-dim);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Video & Beta Notes</span>
+      </div>
+      <textarea id="notesField" rows="4" placeholder="Timestamps, links, cues: hips to wall, high feet, drop knees, compact movement..." class="w-full px-3 py-2.5 text-sm leading-relaxed">${e.notes || ""}</textarea>
+    </div>
+
+    <!-- SAVE -->
+    <button id="saveEntryBtn" class="btn-primary w-full py-3.5 rounded-xl font-display font-semibold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+      <i data-lucide="save" class="w-4 h-4"></i>
+      Save Today's Log
+    </button>
+    <p id="saveConfirm" class="hidden text-center text-xs font-medium" style="color:var(--moss-bright);">Saved to today's log.</p>
+
+  </div>`;
+}
+
+function renderPainSlider(key, label, value){
+  const danger = value >= 5;
+  return `
+  <div>
+    <div class="flex items-center justify-between mb-1.5">
+      <label class="text-xs font-medium" style="color:var(--chalk-dim);">${label}</label>
+      <span class="font-mono text-sm font-bold px-2 py-0.5 rounded" style="color:${danger ? '#FFF6EE' : 'var(--chalk)'}; background:${danger ? 'var(--rust)' : 'var(--bg-raised)'};">${value}</span>
+    </div>
+    <input type="range" data-pain="${key}" min="0" max="10" step="1" value="${value}" class="w-full pain-input">
+  </div>`;
+}
+
+function renderGymExercises(presetKey, savedSets, deload){
+  const preset = GYM_PRESETS[presetKey];
+  return `
+  <div class="space-y-3 pt-1">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-medium" style="color:var(--chalk-faint);">${preset.label}</p>
+      ${deload ? `<span class="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:rgba(201,154,62,0.15); border:1px solid var(--amber); color:var(--amber);">Deload −40%</span>` : ""}
+    </div>
+    ${preset.exercises.map((ex, i) => {
+      const saved = (savedSets && savedSets[ex.name]) || { sets:"", reps:"", weight:"", rpe:"" };
+      const displayScheme = deload ? deloadAdjustScheme(ex.scheme) : ex.scheme;
+      // suggested set count = leading number in the (possibly deload-adjusted) scheme, used as a placeholder hint
+      const suggestedSets = (displayScheme.match(/\d+/) || [])[0] || "";
+      return `
+      <div class="rounded-lg p-3" style="background:var(--bg-raised); border:1px solid var(--line-soft);">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium">${ex.name}</span>
+          <span class="font-mono text-[10px]" style="color:${deload ? 'var(--amber)' : 'var(--chalk-faint)'};">${displayScheme}${deload ? ` <span style="color:var(--chalk-faint); text-decoration:line-through;">${ex.scheme}</span>` : ""}</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <div>
+            <label class="text-[9px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Sets</label>
+            <input type="number" data-ex-field="${presetKey}|${ex.name}|sets" min="0" placeholder="${suggestedSets}" value="${saved.sets}" class="w-full px-1.5 py-1.5 text-xs text-center">
+          </div>
+          <div>
+            <label class="text-[9px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Reps</label>
+            <input type="number" data-ex-field="${presetKey}|${ex.name}|reps" min="0" value="${saved.reps}" class="w-full px-1.5 py-1.5 text-xs text-center">
+          </div>
+          <div>
+            <label class="text-[9px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Kg</label>
+            <input type="number" data-ex-field="${presetKey}|${ex.name}|weight" min="0" step="0.5" value="${saved.weight}" class="w-full px-1.5 py-1.5 text-xs text-center">
+          </div>
+          <div>
+            <label class="text-[9px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">RPE</label>
+            <input type="number" data-ex-field="${presetKey}|${ex.name}|rpe" min="1" max="10" value="${saved.rpe}" class="w-full px-1.5 py-1.5 text-xs text-center">
+          </div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function renderSafetyAlert(pain){
+  const parts = painPartsText(pain);
+  return `
+  <div class="safety-alert rounded-xl p-4 flex gap-3">
+    <i data-lucide="alert-triangle" class="w-6 h-6 flex-shrink-0 mt-0.5" style="color:var(--rust-bright);"></i>
+    <div>
+      <p class="font-display text-sm font-semibold uppercase tracking-wide mb-1" style="color:var(--rust-bright);">Pain Threshold Reached</p>
+      <p class="text-sm leading-snug" style="color:var(--chalk);">${parts} — reduce volume today. Tendons don't negotiate. Back off intensity or switch to technique-only work.</p>
+    </div>
+  </div>`;
+}
+
+function painPartsText(pain){
+  const parts = [];
+  if(pain.fingers >= 5) parts.push(`Fingers ${pain.fingers}/10`);
+  if(pain.elbows >= 5) parts.push(`Elbows ${pain.elbows}/10`);
+  if(pain.shoulders >= 5) parts.push(`Shoulders ${pain.shoulders}/10`);
+  return parts.join(" · ");
+}
+
+let safetyModalShownToday = false;
+
+function showSafetyModal(pain){
+  if(safetyModalShownToday) return; // don't spam on every slider tick within the same day
+  safetyModalShownToday = true;
+  const overlay = document.getElementById("safetyModalOverlay");
+  const textEl = document.getElementById("safetyModalText");
+  if(!overlay || !textEl) return;
+  textEl.textContent = `${painPartsText(pain)} — that's at or above your 5/10 threshold. Back off volume today. Switch to technique-only work, or take the rest. Tendons don't negotiate.`;
+  overlay.classList.remove("hidden");
+  lucide.createIcons();
+}
+
+function hideSafetyModal(){
+  const overlay = document.getElementById("safetyModalOverlay");
+  if(overlay) overlay.classList.add("hidden");
+}
+
+/* ---------------------------- "WHAT TO DO WHEN..." INJURY GUIDE MODAL ---------------------------- */
+let injuryGuideActiveTopic = null; // null = topic list view, otherwise an id from INJURY_GUIDE
+
+function renderInjuryGuideBody(){
+  if(!injuryGuideActiveTopic){
+    return `
+    <div class="space-y-2">
+      <p class="text-xs mb-3" style="color:var(--chalk-dim);">Quick-access protocols from your training plan. Pick what's going on.</p>
+      ${INJURY_GUIDE.map(topic => `
+        <button data-injury-topic="${topic.id}" class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left" style="background:var(--bg-raised); border:1px solid var(--line);">
+          <span class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid ${topic.color};">
+            <i data-lucide="${topic.icon}" class="w-4 h-4" style="color:${topic.color};"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-sm font-medium">${topic.title}</p>
+            <p class="text-[11px]" style="color:var(--chalk-faint);">${topic.trigger}</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 flex-shrink-0" style="color:var(--chalk-faint);"></i>
+        </button>
+      `).join("")}
+    </div>`;
+  }
+
+  const topic = INJURY_GUIDE.find(t => t.id === injuryGuideActiveTopic);
+  return `
+  <div>
+    <button data-injury-back class="flex items-center gap-1.5 mb-3 text-xs font-medium" style="color:var(--chalk-dim);">
+      <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+      All Topics
+    </button>
+    <div class="flex items-center gap-2 mb-1">
+      <i data-lucide="${topic.icon}" class="w-5 h-5" style="color:${topic.color};"></i>
+      <span class="font-display text-base font-semibold">${topic.title}</span>
+    </div>
+    <p class="text-xs mb-4" style="color:var(--chalk-faint);">${topic.trigger}</p>
+    <div class="space-y-3">
+      ${topic.steps.map((step, i) => `
+        <div class="flex gap-3">
+          <span class="font-display text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--bg-raised); border:1px solid ${topic.color}; color:${topic.color};">${i+1}</span>
+          <p class="text-sm leading-relaxed flex-1" style="color:var(--chalk);">${step}</p>
+        </div>
+      `).join("")}
+    </div>
+  </div>`;
+}
+
+function renderInjuryGuideModal(){
+  const body = document.getElementById("injuryGuideBody");
+  if(!body) return;
+  body.innerHTML = renderInjuryGuideBody();
+  lucide.createIcons();
+}
+
+function showInjuryGuide(topicId){
+  injuryGuideActiveTopic = topicId || null;
+  const overlay = document.getElementById("injuryGuideOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("hidden");
+  renderInjuryGuideModal();
+}
+
+function hideInjuryGuide(){
+  const overlay = document.getElementById("injuryGuideOverlay");
+  if(overlay) overlay.classList.add("hidden");
+  injuryGuideActiveTopic = null;
+}
+
+function attachInjuryGuideHandlers(){
+  const body = document.getElementById("injuryGuideBody");
+  if(!body) return;
+  body.addEventListener("click", (ev)=>{
+    const topicBtn = ev.target.closest("[data-injury-topic]");
+    if(topicBtn){
+      injuryGuideActiveTopic = topicBtn.dataset.injuryTopic;
+      renderInjuryGuideModal();
+      return;
+    }
+    const backBtn = ev.target.closest("[data-injury-back]");
+    if(backBtn){
+      injuryGuideActiveTopic = null;
+      renderInjuryGuideModal();
+    }
+  });
+
+  const closeBtn = document.getElementById("injuryGuideClose");
+  if(closeBtn) closeBtn.addEventListener("click", hideInjuryGuide);
+}
+
+/* ---------------------------- HANDLERS ---------------------------- */
+function attachLoggerHandlers(){
+  if(activeTab !== "logger") return;
+  const e = currentEntry();
+
+  const protocolToggle = document.querySelector("[data-protocol-toggle]");
+  if(protocolToggle) protocolToggle.addEventListener("click", ()=>{
+    protocolExpanded = !protocolExpanded;
+    renderMain();
+  });
+
+  const quickDeloadBtn = document.querySelector("[data-quick-deload]");
+  if(quickDeloadBtn) quickDeloadBtn.addEventListener("click", ()=>{
+    e.deload = true;
+    saveState();
+    renderMain();
+  });
+
+  const phaseSelect = document.getElementById("phaseSelect");
+  if(phaseSelect) phaseSelect.addEventListener("change", (ev)=>{
+    e.phase = ev.target.value;
+    saveState();
+    renderMain();
+  });
+
+  const deloadToggle = document.getElementById("deloadToggle");
+  if(deloadToggle) deloadToggle.addEventListener("change", (ev)=>{
+    e.deload = ev.target.checked;
+    saveState();
+    renderMain();
+  });
+
+  document.querySelectorAll("[data-warmup]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.warmup;
+      e.warmup[id] = !e.warmup[id];
+      saveState();
+      renderMain();
+    });
+  });
+
+  const sleepHours = document.getElementById("sleepHours");
+  if(sleepHours) sleepHours.addEventListener("input", (ev)=>{
+    e.sleepHours = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  document.querySelectorAll("[data-sleepq]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      e.sleepQuality = parseInt(btn.dataset.sleepq);
+      saveState();
+      renderMain();
+    });
+  });
+
+  const rpeSlider = document.getElementById("rpeSlider");
+  if(rpeSlider){
+    rpeSlider.addEventListener("input", (ev)=>{
+      document.getElementById("rpeValue").textContent = ev.target.value;
+    });
+    rpeSlider.addEventListener("change", (ev)=>{
+      e.rpe = parseInt(ev.target.value);
+      saveState();
+    });
+  }
+
+  document.querySelectorAll("[data-pain]").forEach(slider=>{
+    slider.addEventListener("input", (ev)=>{
+      const key = slider.dataset.pain;
+      e.pain[key] = parseInt(ev.target.value);
+      const valEl = slider.previousElementSibling.querySelector("span:last-child");
+      if(valEl){
+        valEl.textContent = e.pain[key];
+        const danger = e.pain[key] >= 5;
+        valEl.style.color = danger ? "#FFF6EE" : "var(--chalk)";
+        valEl.style.background = danger ? "var(--rust)" : "var(--bg-raised)";
+      }
+    });
+    slider.addEventListener("change", ()=>{
+      saveState();
+      const maxPain = Math.max(e.pain.fingers, e.pain.elbows, e.pain.shoulders);
+      if(maxPain >= 5) showSafetyModal(e.pain);
+      renderMain(); // re-render to show/hide safety alert
+    });
+  });
+
+  document.querySelectorAll("[data-fallreason]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const reason = btn.dataset.fallreason;
+      const idx = e.fallReasons.indexOf(reason);
+      if(idx >= 0) e.fallReasons.splice(idx,1);
+      else e.fallReasons.push(reason);
+      saveState();
+      renderMain();
+    });
+  });
+
+  const climbDuration = document.getElementById("climbDuration");
+  if(climbDuration) climbDuration.addEventListener("input", (ev)=>{
+    e.climb.duration = ev.target.value;
+    saveState();
+  });
+
+  const climbSessionType = document.getElementById("climbSessionType");
+  if(climbSessionType) climbSessionType.addEventListener("change", (ev)=>{
+    e.climb.sessionType = ev.target.value;
+    saveState();
+  });
+
+  document.querySelectorAll("[data-grade-inc]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const g = btn.dataset.gradeInc;
+      e.climb.grades[g] = (e.climb.grades[g] || 0) + 1;
+      saveState();
+      renderMain();
+    });
+  });
+  document.querySelectorAll("[data-grade-dec]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const g = btn.dataset.gradeDec;
+      e.climb.grades[g] = Math.max(0, (e.climb.grades[g] || 0) - 1);
+      saveState();
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-gympreset]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const preset = btn.dataset.gympreset;
+      e.gym.preset = e.gym.preset === preset ? "" : preset;
+      saveState();
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-ex-field]").forEach(input=>{
+    input.addEventListener("input", (ev)=>{
+      const [preset, exName, field] = input.dataset.exField.split("|");
+      if(!e.gym.sets[exName]) e.gym.sets[exName] = { sets:"", reps:"", weight:"", rpe:"" };
+      e.gym.sets[exName][field] = ev.target.value;
+      saveState();
+    });
+  });
+
+  const notesField = document.getElementById("notesField");
+  if(notesField) notesField.addEventListener("input", (ev)=>{
+    e.notes = ev.target.value;
+    saveState();
+  });
+
+  const saveBtn = document.getElementById("saveEntryBtn");
+  if(saveBtn) saveBtn.addEventListener("click", ()=>{
+    saveState();
+    const confirm = document.getElementById("saveConfirm");
+    confirm.classList.remove("hidden");
+    saveBtn.classList.add("opacity-70");
+    setTimeout(()=>{
+      confirm.classList.add("hidden");
+      saveBtn.classList.remove("opacity-70");
+    }, 1800);
+  });
+}
+
+/* =========================================================================
+   PART 2 — RECOVERY & LIFESTYLE TAB
+   ========================================================================= */
+function renderRecovery(){
+  const e = currentEntry();
+  const weeklyAvg = weeklyWeightAverage();
+
+  return `
+  <div class="fade-in space-y-4">
+
+    <!-- EVENING ROUTINE -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="moon-star" class="w-4 h-4" style="color:var(--steel-bright);"></i>
+          <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">10-Min Evening Routine</span>
+        </div>
+        <span class="text-xs font-mono" style="color:var(--chalk-dim);">${Object.values(e.evening).filter(Boolean).length}/5</span>
+      </div>
+      <div class="space-y-2">
+        ${EVENING_STEPS.map(step => `
+          <button data-evening="${step.id}" class="check-row ${e.evening[step.id] ? "checked" : ""} w-full flex items-center gap-3 px-3 py-2.5 text-left">
+            <span class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style="background:${e.evening[step.id] ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.evening[step.id] ? 'var(--moss)' : 'var(--line)'};">
+              ${e.evening[step.id] ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+            </span>
+            <span class="flex-1">
+              <span class="block text-sm font-medium">${step.label}</span>
+              <span class="block text-xs" style="color:var(--chalk-faint);">${step.detail}</span>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- SKIN & HAND MAINTENANCE -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="hand" class="w-4 h-4" style="color:var(--amber);"></i>
+          <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Skin & Hand Maintenance</span>
+        </div>
+        <span class="text-xs font-mono" style="color:var(--chalk-dim);">${Object.values(e.skin).filter(Boolean).length}/3</span>
+      </div>
+      <div class="space-y-2">
+        ${SKIN_STEPS.map(step => `
+          <button data-skin="${step.id}" class="check-row ${e.skin[step.id] ? "checked" : ""} w-full flex items-center gap-3 px-3 py-2.5 text-left">
+            <span class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style="background:${e.skin[step.id] ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.skin[step.id] ? 'var(--moss)' : 'var(--line)'};">
+              ${e.skin[step.id] ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+            </span>
+            <span class="flex-1">
+              <span class="block text-sm font-medium">${step.label}</span>
+              <span class="block text-xs" style="color:var(--chalk-faint);">${step.detail}</span>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- ACTIVE LIFESTYLE & CARDIO -->
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="footprints" class="w-4 h-4" style="color:var(--moss-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Active Lifestyle & Cardio</span>
+      </div>
+
+      <div class="mb-4">
+        <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Outdoor Walking (min)</label>
+        <input type="number" id="walkMinutes" min="0" step="5" placeholder="30" value="${e.walkMinutes ?? ''}" class="w-full px-3 py-2 text-sm">
+        <p class="text-[10px] mt-1" style="color:var(--chalk-faint);">Target: 20–60 min/day</p>
+      </div>
+
+      <div class="pt-3" style="border-top:1px solid var(--line-soft);">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-medium" style="color:var(--chalk-dim);">Zone 2 Easy Cardio</label>
+          <button data-zone2-toggle class="check-row ${e.zone2.done ? "checked" : ""} px-3 py-1.5 flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style="background:${e.zone2.done ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.zone2.done ? 'var(--moss)' : 'var(--line)'};">
+              ${e.zone2.done ? '<i data-lucide="check" class="w-3 h-3" style="color:#EDF3E8;"></i>' : ''}
+            </span>
+            <span class="text-[11px] font-medium">Done today</span>
+          </button>
+        </div>
+        <p class="text-[10px] mb-2" style="color:var(--chalk-faint);">1–2x/week, 20–40 min</p>
+        <div class="grid grid-cols-3 gap-2 mb-2">
+          ${ZONE2_MODES.map(mode => `
+            <button data-zone2-mode="${mode}" class="pill pill-steel ${e.zone2.mode===mode?"selected":""} py-2 text-[11px] font-medium">${mode}</button>
+          `).join("")}
+        </div>
+        <input type="number" id="zone2Minutes" min="0" step="5" placeholder="Minutes" value="${e.zone2.minutes ?? ''}" class="w-full px-3 py-2 text-sm">
+      </div>
+    </div>
+
+    <!-- NUTRITION & DAILY -->
+    <div class="card">
+      <div class="card-header px-4 py-3 flex items-center gap-2">
+        <i data-lucide="utensils" class="w-4 h-4" style="color:var(--rust-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Nutrition & Daily</span>
+      </div>
+      <div class="p-4 space-y-4">
+
+        <div>
+          <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Body Weight (kg)</label>
+          <input type="number" id="bodyWeight" min="0" step="0.1" placeholder="70.0" value="${e.bodyWeight ?? ''}" class="w-full px-3 py-2 text-sm">
+          <div class="flex items-center justify-between mt-1.5">
+            <p class="text-[10px]" style="color:var(--chalk-faint);">Target: ~70kg @ 192cm, +0.1–0.25 kg/wk</p>
+            ${weeklyAvg !== null ? `<p class="text-[10px] font-mono font-semibold" style="color:var(--steel-bright);">7-day avg: ${weeklyAvg}kg</p>` : ""}
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium block mb-2" style="color:var(--chalk-dim);">Daily Macros</label>
+          <div class="grid grid-cols-3 gap-2">
+            ${Object.entries(MACRO_TARGETS).map(([key, m]) => `
+              <button data-macro="${key}" class="check-row ${e.macros[key] ? "checked" : ""} flex flex-col items-center py-3 px-1">
+                <span class="w-5 h-5 rounded-md flex items-center justify-center mb-1.5" style="background:${e.macros[key] ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.macros[key] ? 'var(--moss)' : 'var(--line)'};">
+                  ${e.macros[key] ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+                </span>
+                <span class="text-xs font-medium">${m.label}</span>
+                <span class="text-[9px] font-mono" style="color:var(--chalk-faint);">${m.range}</span>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium block mb-2" style="color:var(--chalk-dim);">Fuel Timing</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-fuel="pre" class="check-row ${e.fuel.pre ? "checked" : ""} flex items-center gap-2 px-3 py-2.5">
+              <span class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style="background:${e.fuel.pre ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.fuel.pre ? 'var(--moss)' : 'var(--line)'};">
+                ${e.fuel.pre ? '<i data-lucide="check" class="w-3 h-3" style="color:#EDF3E8;"></i>' : ''}
+              </span>
+              <span class="text-xs font-medium">Pre-climb carbs</span>
+            </button>
+            <button data-fuel="post" class="check-row ${e.fuel.post ? "checked" : ""} flex items-center gap-2 px-3 py-2.5">
+              <span class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style="background:${e.fuel.post ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.fuel.post ? 'var(--moss)' : 'var(--line)'};">
+                ${e.fuel.post ? '<i data-lucide="check" class="w-3 h-3" style="color:#EDF3E8;"></i>' : ''}
+              </span>
+              <span class="text-xs font-medium">Post-climb protein</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-3" style="border-top:1px solid var(--line-soft);">
+          <label class="text-xs font-medium block mb-2" style="color:var(--chalk-dim);">Supplements & Hydration</label>
+          <div class="space-y-2">
+            <button data-supp="creatine" class="check-row ${e.supplements.creatine ? "checked" : ""} w-full flex items-center gap-3 px-3 py-2.5 text-left">
+              <span class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style="background:${e.supplements.creatine ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.supplements.creatine ? 'var(--moss)' : 'var(--line)'};">
+                ${e.supplements.creatine ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+              </span>
+              <span class="flex-1 text-sm font-medium">Creatine (3–5g)</span>
+            </button>
+            <button data-supp="electrolytes" class="check-row ${e.supplements.electrolytes ? "checked" : ""} w-full flex items-center gap-3 px-3 py-2.5 text-left">
+              <span class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style="background:${e.supplements.electrolytes ? 'var(--moss)' : 'var(--bg-raised)'}; border:1px solid ${e.supplements.electrolytes ? 'var(--moss)' : 'var(--line)'};">
+                ${e.supplements.electrolytes ? '<i data-lucide="check" class="w-3.5 h-3.5" style="color:#EDF3E8;"></i>' : ''}
+              </span>
+              <span class="flex-1 text-sm font-medium">Electrolytes</span>
+            </button>
+          </div>
+
+          <div class="mt-3">
+            <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Water Intake (ml)</label>
+            <input type="number" id="waterMl" min="0" step="100" placeholder="2500" value="${e.waterMl ?? ''}" class="w-full px-3 py-2 text-sm">
+          </div>
+
+          <div class="mt-3">
+            <label class="text-xs font-medium block mb-2" style="color:var(--chalk-dim);">Caffeine Timing</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button data-caffeine="avoided" class="pill ${e.caffeineLate === false ? "selected" : ""} py-2.5 text-xs font-medium">Avoided Late Caffeine</button>
+              <button data-caffeine="had" class="pill ${e.caffeineLate === true ? "selected" : ""} py-2.5 text-xs font-medium" style="${e.caffeineLate === true ? 'background:var(--rust); border-color:var(--rust); color:#FFF6EE;' : ''}">Had Late Caffeine</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function weeklyWeightAverage(){
+  const dates = last7DatesISO();
+  const vals = dates.map(d => state.entries[d] && state.entries[d].bodyWeight).filter(v => v !== null && v !== undefined && v !== "");
+  if(vals.length === 0) return null;
+  const avg = vals.reduce((a,b)=>a+parseFloat(b),0) / vals.length;
+  return Math.round(avg * 10) / 10;
+}
+
+function last7DatesISO(){
+  const out = [];
+  for(let i=0;i<7;i++){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    out.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+  }
+  return out;
+}
+
+function attachRecoveryHandlers(){
+  if(activeTab !== "recovery") return;
+  const e = currentEntry();
+
+  document.querySelectorAll("[data-evening]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.evening;
+      e.evening[id] = !e.evening[id];
+      saveState();
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-skin]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.skin;
+      e.skin[id] = !e.skin[id];
+      saveState();
+      renderMain();
+    });
+  });
+
+  const walkMinutes = document.getElementById("walkMinutes");
+  if(walkMinutes) walkMinutes.addEventListener("input", (ev)=>{
+    e.walkMinutes = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  const zone2Toggle = document.querySelector("[data-zone2-toggle]");
+  if(zone2Toggle) zone2Toggle.addEventListener("click", ()=>{
+    e.zone2.done = !e.zone2.done;
+    saveState();
+    renderMain();
+  });
+
+  document.querySelectorAll("[data-zone2-mode]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const mode = btn.dataset.zone2Mode;
+      e.zone2.mode = e.zone2.mode === mode ? "" : mode;
+      saveState();
+      renderMain();
+    });
+  });
+
+  const zone2Minutes = document.getElementById("zone2Minutes");
+  if(zone2Minutes) zone2Minutes.addEventListener("input", (ev)=>{
+    e.zone2.minutes = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  const bodyWeight = document.getElementById("bodyWeight");
+  if(bodyWeight) bodyWeight.addEventListener("input", (ev)=>{
+    e.bodyWeight = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+  if(bodyWeight) bodyWeight.addEventListener("change", ()=>{
+    renderMain(); // refresh weekly avg
+  });
+
+  document.querySelectorAll("[data-macro]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const key = btn.dataset.macro;
+      e.macros[key] = !e.macros[key];
+      saveState();
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-fuel]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const key = btn.dataset.fuel;
+      e.fuel[key] = !e.fuel[key];
+      saveState();
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-supp]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const key = btn.dataset.supp;
+      e.supplements[key] = !e.supplements[key];
+      saveState();
+      renderMain();
+    });
+  });
+
+  const waterMl = document.getElementById("waterMl");
+  if(waterMl) waterMl.addEventListener("input", (ev)=>{
+    e.waterMl = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  document.querySelectorAll("[data-caffeine]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const val = btn.dataset.caffeine === "had";
+      e.caffeineLate = (e.caffeineLate === val) ? null : val;
+      saveState();
+      renderMain();
+    });
+  });
+}
+
+/* =========================================================================
+   PART 2 — HISTORY & LOGBOOK TAB
+   ========================================================================= */
+let historyFilters = { type: "all", painFlag: false };
+let expandedHistoryDate = null;
+let editingHistoryDate = null;
+
+function getAllEntriesSorted(){
+  return Object.values(state.entries).sort((a,b)=> b.date.localeCompare(a.date));
+}
+
+/** True if this entry has any real data logged — as opposed to being an
+ *  untouched default (which every day gets automatically on app load).
+ *  Used to keep "last N sessions" analytics from being diluted by a today
+ *  entry the user hasn't actually filled in yet. */
+function entryIsMeaningfullyLogged(e){
+  if(!e) return false;
+  const hasPain = e.pain && (e.pain.fingers > 0 || e.pain.elbows > 0 || e.pain.shoulders > 0);
+  const hasClimb = e.climb && (e.climb.duration || e.climb.sessionType || Object.values(e.climb.grades||{}).some(v=>v>0));
+  const hasGym = e.gym && e.gym.preset;
+  const hasSleep = e.sleepHours !== null && e.sleepHours !== undefined;
+  const hasRpe = e.rpe !== null && e.rpe !== undefined;
+  const hasNotes = e.notes && e.notes.trim().length > 0;
+  return !!(hasPain || hasClimb || hasGym || hasSleep || hasRpe || hasNotes);
+}
+
+/** Same as getAllEntriesSorted but excludes untouched default entries —
+ *  use this for "last N sessions" style analytics so an empty today
+ *  doesn't crowd out real recent history. */
+function getLoggedEntriesSorted(){
+  return getAllEntriesSorted().filter(entryIsMeaningfullyLogged);
+}
+
+function entryHasPainFlag(e){
+  return Math.max(e.pain.fingers, e.pain.elbows, e.pain.shoulders) >= 5;
+}
+
+function entrySessionTypeLabel(e){
+  const hasClimb = e.climb.duration || e.climb.sessionType || Object.values(e.climb.grades||{}).some(v=>v>0);
+  const hasGym = !!e.gym.preset;
+  if(hasClimb && hasGym) return "Climb + Gym";
+  if(hasClimb) return "Climbing";
+  if(hasGym) return "Gym";
+  return "No Session";
+}
+
+function renderHistory(){
+  let entries = getAllEntriesSorted();
+
+  if(historyFilters.type === "climb") entries = entries.filter(e => entrySessionTypeLabel(e).includes("Climb"));
+  if(historyFilters.type === "gym") entries = entries.filter(e => entrySessionTypeLabel(e).includes("Gym"));
+  if(historyFilters.painFlag) entries = entries.filter(entryHasPainFlag);
+
+  return `
+  <div class="fade-in space-y-4">
+
+    <div class="card p-3">
+      <div class="grid grid-cols-3 gap-2 mb-2">
+        <button data-hist-type="all" class="pill ${historyFilters.type==='all'?'selected':''} py-2 text-[11px] font-medium">All</button>
+        <button data-hist-type="climb" class="pill ${historyFilters.type==='climb'?'selected':''} py-2 text-[11px] font-medium">Climbing</button>
+        <button data-hist-type="gym" class="pill pill-steel ${historyFilters.type==='gym'?'selected':''} py-2 text-[11px] font-medium">Gym</button>
+      </div>
+      <button data-hist-pain-toggle class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-medium" style="border:1px solid ${historyFilters.painFlag?'var(--rust)':'var(--line)'}; background:${historyFilters.painFlag?'rgba(196,73,29,0.15)':'transparent'}; color:${historyFilters.painFlag?'var(--rust-bright)':'var(--chalk-dim)'};">
+        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+        Pain / Fatigue Flags Only
+      </button>
+    </div>
+
+    ${entries.length === 0 ? `
+      <div class="flex flex-col items-center justify-center text-center py-16 px-6">
+        <i data-lucide="calendar-x" class="w-10 h-10 mb-3" style="color:var(--chalk-faint);"></i>
+        <p class="text-sm" style="color:var(--chalk-dim);">No sessions match this filter.</p>
+      </div>
+    ` : entries.map(e => renderHistoryCard(e)).join("")}
+
+  </div>`;
+}
+
+function renderHistoryCard(e){
+  const isExpanded = expandedHistoryDate === e.date;
+  const isEditing = editingHistoryDate === e.date;
+  const painFlag = entryHasPainFlag(e);
+  const typeLabel = entrySessionTypeLabel(e);
+  const dateObj = new Date(e.date + "T00:00:00");
+  const dateLabel = dateObj.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  const isToday = e.date === todayISO();
+
+  const dotColor = typeLabel.includes("Climb") && typeLabel.includes("Gym") ? "var(--amber)" : typeLabel.includes("Climb") ? "var(--rust)" : typeLabel.includes("Gym") ? "var(--steel)" : "var(--chalk-faint)";
+
+  return `
+  <div class="card overflow-hidden">
+    <button data-hist-toggle="${e.date}" class="w-full flex items-center justify-between px-4 py-3 text-left">
+      <div class="flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${dotColor};"></span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display text-sm font-semibold">${dateLabel}</span>
+            ${isToday ? `<span class="text-[9px] font-mono px-1.5 py-0.5 rounded" style="background:var(--bg-raised); color:var(--chalk-faint);">TODAY</span>` : ""}
+            ${painFlag ? `<i data-lucide="alert-triangle" class="w-3.5 h-3.5" style="color:var(--rust-bright);"></i>` : ""}
+          </div>
+          <span class="text-xs" style="color:var(--chalk-faint);">${typeLabel}${e.climb.duration ? ` · ${e.climb.duration}min` : ""}</span>
+        </div>
+      </div>
+      <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 flex-shrink-0" style="color:var(--chalk-faint);"></i>
+    </button>
+
+    <div class="accordion-content ${isExpanded ? 'open' : ''}">
+      <div class="px-4 pb-4 pt-1 space-y-3" style="border-top:1px solid var(--line-soft);">
+
+        ${isEditing ? renderHistoryEditForm(e) : renderHistoryReadOnly(e)}
+
+        <div class="flex gap-2 pt-2">
+          <button data-hist-edit="${e.date}" class="btn-ghost flex-1 py-2 rounded-lg text-xs font-display font-semibold uppercase tracking-wide flex items-center justify-center gap-1.5">
+            <i data-lucide="${isEditing ? 'x' : 'pencil'}" class="w-3.5 h-3.5"></i>
+            ${isEditing ? 'Cancel' : 'Edit'}
+          </button>
+          <button data-hist-delete="${e.date}" class="flex-1 py-2 rounded-lg text-xs font-display font-semibold uppercase tracking-wide flex items-center justify-center gap-1.5" style="background:rgba(196,73,29,0.12); border:1px solid var(--rust); color:var(--rust-bright);">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderHistoryReadOnly(e){
+  const rows = [];
+  rows.push(`<div class="grid grid-cols-3 gap-2 text-center">
+    <div class="rounded-lg p-2" style="background:var(--bg-raised);">
+      <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">Sleep</p>
+      <p class="font-mono text-sm font-bold">${e.sleepHours ?? "—"}h</p>
+    </div>
+    <div class="rounded-lg p-2" style="background:var(--bg-raised);">
+      <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">RPE</p>
+      <p class="font-mono text-sm font-bold">${e.rpe ?? "—"}</p>
+    </div>
+    <div class="rounded-lg p-2" style="background:var(--bg-raised);">
+      <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">Max Pain</p>
+      <p class="font-mono text-sm font-bold" style="color:${Math.max(e.pain.fingers,e.pain.elbows,e.pain.shoulders)>=5?'var(--rust-bright)':'var(--chalk)'};">${Math.max(e.pain.fingers,e.pain.elbows,e.pain.shoulders)}/10</p>
+    </div>
+  </div>`);
+
+  const gradeEntries = Object.entries(e.climb.grades || {}).filter(([g,c])=>c>0);
+  if(gradeEntries.length){
+    rows.push(`<div>
+      <p class="text-[10px] uppercase tracking-wide mb-1.5" style="color:var(--chalk-faint);">Grades Sent</p>
+      <div class="flex flex-wrap gap-1.5">
+        ${gradeEntries.map(([g,c])=>`<span class="font-mono text-xs px-2 py-1 rounded-md" style="background:var(--bg-raised); border:1px solid var(--line);">${g} ×${c}</span>`).join("")}
+      </div>
+    </div>`);
+  }
+
+  if(e.gym.preset){
+    rows.push(`<div>
+      <p class="text-[10px] uppercase tracking-wide mb-1.5" style="color:var(--chalk-faint);">Gym: ${GYM_PRESETS[e.gym.preset].label}</p>
+    </div>`);
+  }
+
+  if(e.fallReasons && e.fallReasons.length){
+    rows.push(`<div>
+      <p class="text-[10px] uppercase tracking-wide mb-1.5" style="color:var(--chalk-faint);">Fall Reasons</p>
+      <div class="flex flex-wrap gap-1.5">
+        ${e.fallReasons.map(r=>`<span class="text-[11px] px-2 py-1 rounded-md" style="background:var(--bg-raised); border:1px solid var(--line); color:var(--chalk-dim);">${r}</span>`).join("")}
+      </div>
+    </div>`);
+  }
+
+  if(e.notes){
+    rows.push(`<div>
+      <p class="text-[10px] uppercase tracking-wide mb-1.5" style="color:var(--chalk-faint);">Video & Beta Notes</p>
+      <p class="text-xs leading-relaxed" style="color:var(--chalk-dim);">${escapeHtml(e.notes)}</p>
+    </div>`);
+  }
+
+  return rows.join("");
+}
+
+function renderHistoryEditForm(e){
+  return `
+  <div class="space-y-3">
+    <div>
+      <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Sleep Hours</label>
+      <input type="number" data-edit-field="sleepHours" min="0" max="14" step="0.5" value="${e.sleepHours ?? ''}" class="w-full px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">RPE</label>
+      <input type="number" data-edit-field="rpe" min="1" max="10" value="${e.rpe ?? ''}" class="w-full px-3 py-2 text-sm">
+    </div>
+    <div class="grid grid-cols-3 gap-2">
+      <div>
+        <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Fingers</label>
+        <input type="number" data-edit-pain="fingers" min="0" max="10" value="${e.pain.fingers}" class="w-full px-2 py-2 text-xs text-center">
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Elbows</label>
+        <input type="number" data-edit-pain="elbows" min="0" max="10" value="${e.pain.elbows}" class="w-full px-2 py-2 text-xs text-center">
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Shoulders</label>
+        <input type="number" data-edit-pain="shoulders" min="0" max="10" value="${e.pain.shoulders}" class="w-full px-2 py-2 text-xs text-center">
+      </div>
+    </div>
+    <div>
+      <label class="text-[10px] uppercase tracking-wide block mb-1" style="color:var(--chalk-faint);">Video & Beta Notes</label>
+      <textarea data-edit-field="notes" rows="3" class="w-full px-3 py-2 text-sm leading-relaxed">${e.notes || ""}</textarea>
+    </div>
+    <button data-edit-save="${e.date}" class="btn-primary w-full py-2.5 rounded-lg text-xs font-display font-semibold uppercase tracking-wide flex items-center justify-center gap-1.5">
+      <i data-lucide="check" class="w-3.5 h-3.5"></i>
+      Save Changes
+    </button>
+  </div>`;
+}
+
+function escapeHtml(str){
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function attachHistoryHandlers(){
+  if(activeTab !== "history") return;
+
+  document.querySelectorAll("[data-hist-type]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      historyFilters.type = btn.dataset.histType;
+      renderMain();
+    });
+  });
+
+  const painToggle = document.querySelector("[data-hist-pain-toggle]");
+  if(painToggle) painToggle.addEventListener("click", ()=>{
+    historyFilters.painFlag = !historyFilters.painFlag;
+    renderMain();
+  });
+
+  document.querySelectorAll("[data-hist-toggle]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const date = btn.dataset.histToggle;
+      expandedHistoryDate = expandedHistoryDate === date ? null : date;
+      if(expandedHistoryDate !== date) editingHistoryDate = null;
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-hist-edit]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const date = btn.dataset.histEdit;
+      editingHistoryDate = editingHistoryDate === date ? null : date;
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll("[data-hist-delete]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const date = btn.dataset.histDelete;
+      if(confirm(`Delete the log for ${date}? This can't be undone.`)){
+        delete state.entries[date];
+        if(date === todayISO()){
+          state.entries[date] = defaultDailyEntry();
+        }
+        saveState();
+        expandedHistoryDate = null;
+        editingHistoryDate = null;
+        renderMain();
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-edit-save]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const date = btn.dataset.editSave;
+      const entry = state.entries[date];
+      const container = btn.closest(".accordion-content");
+      container.querySelectorAll("[data-edit-field]").forEach(input=>{
+        const field = input.dataset.editField;
+        if(field === "sleepHours" || field === "rpe"){
+          entry[field] = input.value === "" ? null : parseFloat(input.value);
+        } else {
+          entry[field] = input.value;
+        }
+      });
+      container.querySelectorAll("[data-edit-pain]").forEach(input=>{
+        const key = input.dataset.editPain;
+        entry.pain[key] = parseInt(input.value) || 0;
+      });
+      saveState();
+      editingHistoryDate = null;
+      renderMain();
+    });
+  });
+}
+
+/* =========================================================================
+   PART 2 — STATS & ANALYTICS TAB
+   ========================================================================= */
+function renderStats(){
+  const weekly = computeWeeklyVolume();
+  const gradeProgression = computeGradeProgression();
+  const fatigueFlag = computeFatigueFlag();
+  const deloadSuggested = computeDeloadSuggestion();
+
+  return `
+  <div class="fade-in space-y-4">
+
+    ${deloadSuggested ? `
+    <div class="rounded-xl p-4 flex gap-3" style="background:linear-gradient(180deg, rgba(201,154,62,0.18), rgba(201,154,62,0.05)); border:1.5px solid var(--amber);">
+      <i data-lucide="battery-warning" class="w-6 h-6 flex-shrink-0 mt-0.5" style="color:var(--amber);"></i>
+      <div>
+        <p class="font-display text-sm font-semibold uppercase tracking-wide mb-1" style="color:var(--amber);">Deload Suggested</p>
+        <p class="text-sm leading-snug" style="color:var(--chalk);">${deloadSuggested}</p>
+      </div>
+    </div>` : ""}
+
+    ${fatigueFlag ? `
+    <div class="safety-alert rounded-xl p-4 flex gap-3">
+      <i data-lucide="alert-triangle" class="w-6 h-6 flex-shrink-0 mt-0.5" style="color:var(--rust-bright);"></i>
+      <div class="flex-1">
+        <p class="font-display text-sm font-semibold uppercase tracking-wide mb-1" style="color:var(--rust-bright);">Injury Warning</p>
+        <p class="text-sm leading-snug mb-2" style="color:var(--chalk);">${fatigueFlag}</p>
+        <button data-open-injury-guide class="text-xs font-display font-semibold uppercase tracking-wide px-3 py-1.5 rounded-lg" style="background:var(--rust); color:#FFF6EE;">Open Coach Guide</button>
+      </div>
+    </div>` : ""}
+
+    <!-- WEEKLY VOLUME -->
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="bar-chart-3" class="w-4 h-4" style="color:var(--rust-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Weekly Volume (Last 7 Days)</span>
+      </div>
+      <div class="space-y-3">
+        ${renderVolumeBar("Climbing", weekly.climbMin, weekly.maxMin, "var(--rust)")}
+        ${renderVolumeBar("Gym", weekly.gymMin, weekly.maxMin, "var(--steel)")}
+        ${renderVolumeBar("Walking", weekly.walkMin, weekly.maxMin, "var(--moss)")}
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-4 pt-3" style="border-top:1px solid var(--line-soft);">
+        <div class="text-center">
+          <p class="font-mono text-lg font-bold" style="color:var(--rust-bright);">${(weekly.climbMin/60).toFixed(1)}h</p>
+          <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">Climb</p>
+        </div>
+        <div class="text-center">
+          <p class="font-mono text-lg font-bold" style="color:var(--steel-bright);">${(weekly.gymMin/60).toFixed(1)}h</p>
+          <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">Gym</p>
+        </div>
+        <div class="text-center">
+          <p class="font-mono text-lg font-bold" style="color:var(--moss-bright);">${(weekly.walkMin/60).toFixed(1)}h</p>
+          <p class="text-[9px] uppercase tracking-wide" style="color:var(--chalk-faint);">Walk</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRADE PROGRESSION -->
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="mountain-snow" class="w-4 h-4" style="color:var(--amber);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Grade Progression</span>
+      </div>
+      ${gradeProgression.length === 0 ? `
+        <p class="text-xs text-center py-4" style="color:var(--chalk-faint);">Log some sends to see progression here.</p>
+      ` : `
+        <div class="flex items-end gap-2 h-28 mb-2">
+          ${gradeProgression.map(pt => {
+            const heightPct = (parseInt(pt.grade.replace('V','')) + 1) / 10 * 100;
+            return `
+            <div class="flex-1 flex flex-col items-center justify-end gap-1">
+              <span class="font-mono text-[10px] font-bold" style="color:var(--amber);">${pt.grade}</span>
+              <div class="w-full rounded-t-md" style="height:${heightPct}%; background:linear-gradient(180deg, var(--rust-bright), var(--rust));"></div>
+            </div>`;
+          }).join("")}
+        </div>
+        <div class="flex gap-2">
+          ${gradeProgression.map(pt => `<span class="flex-1 text-center text-[9px] font-mono" style="color:var(--chalk-faint);">${pt.label}</span>`).join("")}
+        </div>
+      `}
+    </div>
+
+  </div>`;
+}
+
+function renderVolumeBar(label, minutes, maxMinutes, color){
+  const pct = maxMinutes > 0 ? Math.max(4, (minutes / maxMinutes) * 100) : 4;
+  return `
+  <div>
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-xs font-medium" style="color:var(--chalk-dim);">${label}</span>
+      <span class="font-mono text-xs font-bold" style="color:${color};">${minutes}m</span>
+    </div>
+    <div class="w-full h-2.5 rounded-full" style="background:var(--bg-raised);">
+      <div class="h-2.5 rounded-full" style="width:${pct}%; background:${color};"></div>
+    </div>
+  </div>`;
+}
+
+function computeWeeklyVolume(){
+  const dates = last7DatesISO();
+  let climbMin = 0, gymMin = 0, walkMin = 0;
+  dates.forEach(d=>{
+    const e = state.entries[d];
+    if(!e) return;
+    climbMin += parseFloat(e.climb.duration) || 0;
+    if(e.gym.preset) gymMin += 60; // approx session length for gym day
+    walkMin += parseFloat(e.walkMinutes) || 0;
+    if(e.zone2.done) walkMin += parseFloat(e.zone2.minutes) || 0;
+  });
+  const maxMin = Math.max(climbMin, gymMin, walkMin, 1);
+  return { climbMin, gymMin, walkMin, maxMin };
+}
+
+function computeGradeProgression(){
+  const entries = getLoggedEntriesSorted().slice().reverse().slice(-10); // last 10 chronological, logged only
+  const points = [];
+  entries.forEach(e=>{
+    const grades = Object.entries(e.climb.grades || {}).filter(([g,c])=>c>0).map(([g])=>g);
+    if(grades.length === 0) return;
+    const highest = grades.sort((a,b)=> parseInt(a.replace('V','')) - parseInt(b.replace('V','')) ).pop();
+    const dateObj = new Date(e.date + "T00:00:00");
+    points.push({ grade: highest, label: dateObj.toLocaleDateString('en-US',{month:'numeric',day:'numeric'}) });
+  });
+  return points;
+}
+
+function computeFatigueFlag(){
+  // "Finger/elbow/shoulder pain stays >= 4/10 for 3 sessions in a row" — most recent 3
+  // MEANINGFULLY LOGGED days (an untouched today shouldn't count as a session).
+  const entries = getLoggedEntriesSorted().slice(0, 3);
+  if(entries.length < 3) return null;
+  const allHigh = entries.every(e => e.pain.fingers >= 4 || e.pain.elbows >= 4 || e.pain.shoulders >= 4);
+  if(allHigh){
+    return "Finger, elbow, or shoulder pain has stayed at 4/10 or higher across your last 3 sessions. This is a pattern, not a bad day — consider a technique-only block, a full rest, or switching on Deload Mode until it settles.";
+  }
+  return null;
+}
+
+/** How many consecutive calendar weeks the currently-selected phase has been
+ *  active without a single Deload day logged. Scans backward from today
+ *  through every logged entry that shares today's phase, stopping at the
+ *  first gap (a different phase or a missing day) or the first deload day. */
+function computeWeeksInPhaseWithoutDeload(){
+  const today = currentEntry();
+  const currentPhase = today.phase;
+
+  // Walk backward day-by-day from today. Today's entry always exists (it's
+  // auto-created), so start there and count it, then look at yesterday
+  // onward. Stop at the first day that breaks the streak: a different phase,
+  // a deload day, or — once we're past today — a day with no entry at all
+  // (a logging gap, which we treat as the edge of "this phase" rather than
+  // silently skipping over).
+  let cursor = new Date(todayISO() + "T00:00:00");
+  let daysInPhase = 0;
+
+  for(let i=0; i<365; i++){
+    const iso = cursor.getFullYear()+"-"+String(cursor.getMonth()+1).padStart(2,"0")+"-"+String(cursor.getDate()).padStart(2,"0");
+    const entry = state.entries[iso];
+
+    if(!entry){
+      if(i === 0) { /* today with no entry shouldn't happen, but don't crash */ }
+      break; // logging gap — treat as the boundary of the current streak
+    }
+    if(entry.phase !== currentPhase) break;
+    if(entry.deload) break;
+
+    daysInPhase++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return Math.floor(daysInPhase / 7);
+}
+
+function computeDeloadSuggestion(){
+  const entries = getAllEntriesSorted();
+  if(entries.length === 0) return null;
+
+  // Trigger (a): pain streak — reuse the same fatigue check.
+  const painStreak = computeFatigueFlag();
+  if(painStreak){
+    return "Pain has stayed at 4/10+ across your last 3 sessions. Switch on Deload Mode in the Logger — this isn't optional at this point.";
+  }
+
+  // Trigger (b): 5+ weeks in the active phase without a deload day.
+  const weeksInPhase = computeWeeksInPhaseWithoutDeload();
+  if(weeksInPhase >= 5){
+    return `You've been in this phase for ${weeksInPhase} weeks without a deload. Switch on Deload Mode for a few days to let adaptation catch up.`;
+  }
+
+  return null;
+}
+
+function attachStatsHandlers(){
+  const openGuideBtn = document.querySelector("[data-open-injury-guide]");
+  if(openGuideBtn) openGuideBtn.addEventListener("click", ()=> showInjuryGuide(null));
+}
+
+/* =========================================================================
+   PART 2 — SETTINGS TAB
+   ========================================================================= */
+function renderSettings(){
+  const totalDays = Object.keys(state.entries).length;
+  return `
+  <div class="fade-in space-y-4">
+
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="user" class="w-4 h-4" style="color:var(--chalk-dim);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Profile</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Height (cm)</label>
+          <input type="number" id="settingsHeight" min="0" value="${state.settings.heightCm}" class="w-full px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-medium block mb-1.5" style="color:var(--chalk-dim);">Target Weight (kg)</label>
+          <input type="number" id="settingsTargetWeight" min="0" step="0.5" value="${state.settings.targetWeightKg}" class="w-full px-3 py-2 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="database" class="w-4 h-4" style="color:var(--steel-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Data & Backup</span>
+      </div>
+      <p class="text-xs mb-3" style="color:var(--chalk-dim);">${totalDays} day${totalDays===1?"":"s"} logged, stored only on this device.</p>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <button id="exportBtn" class="btn-steel py-2.5 rounded-lg text-xs font-display font-semibold uppercase tracking-wide flex items-center justify-center gap-1.5">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Export
+        </button>
+        <button id="importBtn" class="btn-ghost py-2.5 rounded-lg text-xs font-display font-semibold uppercase tracking-wide flex items-center justify-center gap-1.5">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+          Import
+        </button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" class="hidden">
+      <p id="importStatus" class="hidden text-xs text-center mt-1" style="color:var(--moss-bright);"></p>
+    </div>
+
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="smartphone" class="w-4 h-4" style="color:var(--amber);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Add to Home Screen</span>
+      </div>
+      <p class="text-xs leading-relaxed" style="color:var(--chalk-dim);">
+        In Safari: tap <span style="color:var(--chalk);">Share</span> → <span style="color:var(--chalk);">Add to Home Screen</span>. SEND LOG will open full-screen with no browser bars, like a native app.
+      </p>
+    </div>
+
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="trash-2" class="w-4 h-4" style="color:var(--rust-bright);"></i>
+        <span class="text-[10px] font-display font-semibold tracking-[0.2em] uppercase" style="color:var(--chalk-faint);">Danger Zone</span>
+      </div>
+      <button id="resetBtn" class="w-full py-2.5 rounded-lg text-xs font-display font-semibold uppercase tracking-wide" style="background:rgba(196,73,29,0.12); border:1px solid var(--rust); color:var(--rust-bright);">
+        Erase All Data
+      </button>
+    </div>
+
+  </div>`;
+}
+
+function attachSettingsHandlers(){
+  if(activeTab !== "settings") return;
+
+  const heightInput = document.getElementById("settingsHeight");
+  if(heightInput) heightInput.addEventListener("input", (ev)=>{
+    state.settings.heightCm = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  const targetWeightInput = document.getElementById("settingsTargetWeight");
+  if(targetWeightInput) targetWeightInput.addEventListener("input", (ev)=>{
+    state.settings.targetWeightKg = ev.target.value === "" ? null : parseFloat(ev.target.value);
+    saveState();
+  });
+
+  const exportBtn = document.getElementById("exportBtn");
+  if(exportBtn) exportBtn.addEventListener("click", exportBackup);
+
+  const importBtn = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
+  if(importBtn && importFile){
+    importBtn.addEventListener("click", ()=> importFile.click());
+    importFile.addEventListener("change", handleImportFile);
+  }
+
+  const resetBtn = document.getElementById("resetBtn");
+  if(resetBtn) resetBtn.addEventListener("click", ()=>{
+    if(confirm("Erase ALL logged data on this device? This cannot be undone.")){
+      localStorage.removeItem(STORAGE_KEY);
+      state = { entries: {}, lastSpiteIndex: -1, settings: { heightCm: 192, targetWeightKg: 70 } };
+      state.entries[todayISO()] = defaultDailyEntry();
+      saveState();
+      renderMain();
+    }
+  });
+}
+
+function exportBackup(){
+  try{
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sendlog-backup-${todayISO()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert("Export failed: " + e.message);
+  }
+}
+
+function handleImportFile(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!imported.entries) throw new Error("Invalid backup file — missing entries.");
+      Object.keys(imported.entries).forEach(k=>{
+        imported.entries[k] = migrateEntry(imported.entries[k]);
+      });
+      state = imported;
+      if(!state.settings) state.settings = { heightCm: 192, targetWeightKg: 70 };
+      if(!state.entries[todayISO()]) state.entries[todayISO()] = defaultDailyEntry();
+      saveState();
+      const status = document.getElementById("importStatus");
+      if(status){
+        status.textContent = "Backup imported successfully.";
+        status.classList.remove("hidden");
+      }
+      renderMain();
+    }catch(err){
+      alert("Import failed: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = "";
+}
+
+/* ---------------------------- INIT ---------------------------- */
+function fixGradeDecDataset(){
+  // Lucide/data attr helper — no-op, kept for clarity
+}
+
+function initPWAManifest(){
+  // Build a simple mountain/chalk-mark app icon as SVG, encode to data URI for the manifest + apple-touch-icon
+  const iconSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#15130F"/>
+      <rect x="0" y="0" width="512" height="512" fill="none" stroke="#C4491D" stroke-width="16"/>
+      <path d="M 90 380 L 220 190 L 290 290 L 340 220 L 430 380 Z" fill="#EDE9E0"/>
+      <path d="M 220 190 L 250 235 L 200 240 Z" fill="#C4491D"/>
+      <circle cx="256" cy="120" r="14" fill="#C4491D"/>
+    </svg>`;
+  const iconDataUri = "data:image/svg+xml;base64," + btoa(iconSvg);
+
+  const manifest = {
+    name: "SEND LOG — Climbing Coach",
+    short_name: "SEND LOG",
+    description: "Personal climbing, gym, and performance coach.",
+    start_url: ".",
+    scope: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#15130F",
+    theme_color: "#15130F",
+    icons: [
+      { src: iconDataUri, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
+      { src: iconDataUri, sizes: "192x192", type: "image/svg+xml" },
+    ]
+  };
+
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+
+  const manifestLink = document.getElementById("manifestLink");
+  if(manifestLink) manifestLink.setAttribute("href", manifestUrl);
+
+  const appleIcon = document.getElementById("appleTouchIcon");
+  if(appleIcon) appleIcon.setAttribute("href", iconDataUri);
+}
+
+function initSafetyModal(){
+  const dismissBtn = document.getElementById("safetyModalDismiss");
+  if(dismissBtn) dismissBtn.addEventListener("click", hideSafetyModal);
+}
+
+function initInjuryGuide(){
+  const openBtn = document.getElementById("injuryGuideOpen");
+  if(openBtn) openBtn.addEventListener("click", ()=> showInjuryGuide(null));
+  attachInjuryGuideHandlers();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  initPWAManifest();
+  initSpite();
+  initTabs();
+  initSafetyModal();
+  initInjuryGuide();
+  renderMain();
+});
+</script>
+</body>
+</html>
